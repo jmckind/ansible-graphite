@@ -1,0 +1,10 @@
+---
+# file: roles/mysql/tasks/main.yml
+
+- name: ensure required packages are present
+  apt: pkg={{ item }} update_cache=yes
+  with_items:
+    - mysql-server
+
+- name: ensure that the mysql configuration file is present
+  copy: src=etc/mysql/my.cnf dest=/etc/mysql/my.cnf mode=0644 owner=root group=root

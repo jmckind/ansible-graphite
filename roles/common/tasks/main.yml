@@ -1,0 +1,27 @@
+---
+# file: roles/common/tasks/main.yml
+
+- name: ensure common packages are present
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+    - curl
+    - iftop
+    - git-core
+    - htop
+    - python-pip
+    - tree
+    - vim
+    - wget
+
+- name: ensure common python modules are present
+  pip: name={{ item }} state=present
+  with_items:
+    - httpie
+
+- name: ensure the bashrc file is present
+  copy: src=home/bashrc dest=/home/{{ ansible_env.SUDO_USER }}/.bashrc mode=0700 owner={{ ansible_env.SUDO_USER }} group={{ ansible_env.SUDO_USER }}
+
+- name: Dump all variables
+  connection: local
+  local_action: template src=environment.j2 dest={{ inventory_dir }}/environment.log
+  sudo: no

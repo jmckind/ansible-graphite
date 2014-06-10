@@ -1,0 +1,23 @@
+---
+# file: group_vars/all
+
+
+graphite_db_host: localhost
+graphite_db_port: 3306
+graphite_db_name: graphite
+graphite_db_username: graphite
+graphite_db_password: notgraphite
+
+graphite_memcached_host: localhost:11211
+
+graphite_web_repo: https://github.com/graphite-project/graphite-web.git
+graphite_web_version: 0.9.12
+graphite_web_dir: /tmp/graphite-web
+
+carbon_repo: https://github.com/graphite-project/carbon.git
+carbon_version: 0.9.12
+carbon_dir: /tmp/carbon
+
+whisper_repo: https://github.com/graphite-project/whisper.git
+whisper_version: 0.9.12
+whisper_dir: /tmp/whisper

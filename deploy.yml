@@ -1,0 +1,10 @@
+- name: setup Graphite nodes
+  hosts: all
+  gather_facts: yes
+  sudo: yes
+  roles:
+    - common
+    - apache
+    - memcached
+    - mysql
+    - graphite

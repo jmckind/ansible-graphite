@@ -1,0 +1,82 @@
+---
+# file: roles/graphite/tasks/main.yml
+
+- name: ensure required packages are present
+  apt: pkg={{ item }} update_cache=yes
+  with_items:
+    - libapache2-mod-wsgi
+    - memcached
+    - python-cairo
+    - python-django
+    - python-django-tagging
+    - python-ldap
+    - python-memcache
+    - python-mysqldb
+    - python-twisted
+    - python-txamqp
+    - python-zope.interface
+
+- name: ensure the whisper source is present
+  git: repo={{ whisper_repo }} version={{ whisper_version }} dest={{ whisper_dir }}
+
+- name: ensure that whisper is installed
+  command: python setup.py install chdir={{ whisper_dir }} creates=/usr/local/bin/whisper-info.py
+
+- name: ensure the carbon source is present
+  git: repo={{ carbon_repo }} version={{ carbon_version }} dest={{ carbon_dir }}
+
+- name: ensure that carbon is installed
+  command: python setup.py install chdir={{ carbon_dir }} creates=/opt/graphite/bin/carbon-cache.py
+
+- name: ensure that the carbon configuration file is present
+  copy: src=carbon/carbon.conf dest=/opt/graphite/conf/carbon.conf
+
+- name: ensure that the carbon storage schemas configuration file is present
+  copy: src=carbon/storage-schemas.conf dest=/opt/graphite/conf/storage-schemas.conf
+
+- name: ensure the graphite-web source is present
+  git: repo={{ graphite_web_repo }} version={{ graphite_web_version }} dest={{ graphite_web_dir }}
+
+- name: ensure that graphite-web is installed
+  command: python setup.py install chdir={{ graphite_web_dir }} creates=/opt/graphite/webapp
+
+- name: ensure the graphite-web configuration file is present
+  template: src=opt/graphite/webapp/graphite/local_settings.py.j2 dest=/opt/graphite/webapp/graphite/local_settings.py
+
+- name: ensure the graphite-web configuration directory is present
+  file: path=/opt/graphite/conf state=directory owner=root group=root
+
+- name: ensure the graphite-web wsgi configuration file is present
+  copy: src=graphite-web/graphite.wsgi dest=/opt/graphite/conf/graphite.wsgi  owner=root group=root
+
+- name: ensure the database user is present
+  mysql_user: name={{ graphite_db_username }} password={{ graphite_db_password }} priv="{{ graphite_db_name }}.*:ALL" state=present #"
+
+- name: ensure the database is present
+  mysql_db: name={{ graphite_db_name }} state=present
+
+- name: ensure the graphite-web database is initialized
+  command: python manage.py syncdb --noinput chdir=/opt/graphite/webapp/graphite creates=/var/lib/mysql/graphite/dashboard_dashboard.frm
+
+- name: ensure the graphite-web sample data is present
+  copy: src=graphite-web/sample_data.json dest=/opt/graphite/webapp/graphite/sample_data.json
+
+- name: ensure the graphite-web sample data is populated
+  shell: python manage.py loaddata sample_data.json > /tmp/sample_data chdir=/opt/graphite/webapp/graphite creates=/tmp/sample_data
+
+- name: ensure the default apache vhost is disabled
+  command: a2dissite default removes=/etc/apache2/sites-enabled/000-default
+
+- name: ensure the graphite-web apache configuration is present
+  copy: src=graphite-web/graphite.conf dest=/etc/apache2/sites-available/graphite
+
+- name: ensure the permissions are set on the graphite-web storage directory
+  file: path=/opt/graphite/storage state=directory mode=0775 owner=root group=www-data recurse=yes
+
+- name: ensure the graphite-web apache site is enabled
+  command: a2ensite graphite creates=/etc/apache2/sites-enabled/graphite
+  notify: restart apache
+
+- name: ensure the carbon-cache upstart script is present
+  copy: src=carbon/carbon-cache.conf dest=/etc/init/carbon-cache.conf mode=0644 owner=root group=root
+  notify: start carbon-cache

@@ -1,0 +1,10 @@
+---
+# file: roles/memcache/tasks/main.yml
+
+- name: ensure required packages are present
+  apt: pkg={{ item }} update_cache=yes
+  with_items:
+    - memcached
+
+- name: ensure that the memcache configuration file is present
+  copy: src=etc/memcached.conf dest=/etc/memcached.conf mode=0644 owner=root group=root

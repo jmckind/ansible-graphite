@@ -1,0 +1,26 @@
+[{
+	"pk": 2,
+	"model": "auth.user",
+	"fields": {
+		"username": "graphite",
+		"first_name": "",
+		"last_name": "",
+		"is_active": true,
+		"is_superuser": true,
+		"is_staff": true,
+		"last_login": "2014-05-29 22:30:05",
+		"groups": [],
+		"user_permissions": [],
+		"password": "sha1$fec75$fa6922e67f3e561efcfd81092201bbfe2eef096b",
+		"email": "graphite@example.com",
+		"date_joined": "2014-05-29 22:25:18"
+	}
+},{
+	"pk": 2,
+	"model": "account.profile",
+	"fields": {
+		"user": 2,
+		"advancedUI": false,
+		"history": ""
+	}
+}]
